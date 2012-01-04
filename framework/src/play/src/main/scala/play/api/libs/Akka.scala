@@ -8,8 +8,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config.ConfigFactory
 
 object Akka {
-  private lazy val actorSystemName: String = play.api.Play.maybeApplication.map(_.configuration.getString("akka.default.system.name")).flatMap(x=>x).getOrElse("playcore")
-  lazy val system = ActorSystem(actorSystemName, ConfigFactory.load.getConfig(actorSystemName))
+  lazy val system = ActorSystem("playcore", ConfigFactory.load.getConfig("playcore"))
 
   implicit def akkaToPlay[A](future: Future[A]) = new AkkaFuture(future)
 }

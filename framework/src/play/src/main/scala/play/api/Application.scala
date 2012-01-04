@@ -31,11 +31,10 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
 
   Thread.currentThread.setContextClassLoader(classloader)
 
-  private val initialConfiguration = Configuration.load()
+  private lazy val initialConfiguration = Configuration.load(Some(Play.getFile("conf/application.conf")(this)))
 
   // -- Global stuff
-
-  private val globalClass = initialConfiguration.getString("global").getOrElse("Global")
+  private lazy val globalClass = initialConfiguration.getString("global").getOrElse("Global")
 
   lazy private val javaGlobal: Option[play.GlobalSettings] = try {
     Option(classloader.loadClass(globalClass).newInstance().asInstanceOf[play.GlobalSettings])
@@ -70,7 +69,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       Some(e))
   }
   
-  private val fullConfiguration = initialConfiguration ++ global.configuration 
+  private lazy val fullConfiguration = initialConfiguration ++ global.configuration 
 
   /**
    * The configuration used by this application.

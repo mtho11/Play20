@@ -18,7 +18,7 @@ import akka.dispatch.Await
 import akka.util.duration._  
 import akka.actor.OneForOneStrategy
 import akka.routing.{DefaultActorPool,FixedCapacityStrategy,SmallestMailboxSelector}
-
+import com.typesafe.config.Config
 
 case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 class Invoker extends Actor {
@@ -109,14 +109,23 @@ class PromiseInvoker extends Actor {
   }
 }
 object PromiseInvoker {
+  
+  private def getInt(c: Config, key: String) = Option(c.getInt(key))
 
-  private val faultHandler = OneForOneStrategy(List(classOf[Exception]), 5, 1000)
+  private lazy val c = system.settings.config
+
+  private lazy val invokerLimit = getInt(c,"invoker.limit").getOrElse(5)
+  private lazy val withinTime = getInt(c,"invoker.withinTime").getOrElse(1000)
+  private lazy val retries = getInt(c,"invoker.max.try").getOrElse(1)
+  private lazy val count = getInt(c,"invoker.selection.count").getOrElse(1)
+
+  private val faultHandler = OneForOneStrategy(List(classOf[Exception]), retries, withinTime)
 
   private lazy val pool = system.actorOf(
         Props(new Actor with DefaultActorPool with FixedCapacityStrategy with SmallestMailboxSelector {
           def instance(defaults: Props) = system.actorOf(defaults.withCreator(new PromiseInvoker).withDispatcher("invoker.promise-dispatcher"))
-          def limit = 2
-          def selectionCount =  1
+          def limit = invokerLimit
+          def selectionCount =  count
           def partialFill = true
           def receive = _route
         }).withFaultHandler(faultHandler))

@@ -15,7 +15,6 @@ import play.cache.{Cache=>JCache}
 object Application extends Controller {
 
   def index = Action {
-    println(play.api.Play.configuration.keys)
     val conn = play.api.db.DB.getConnection("default")
     Cache.set("hello","world")
     val v2 = Cache.get[String]("peter","hello")

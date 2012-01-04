@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
  *
  * For example, to load a `Configuration` from a file:
  * {{{
- * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
+ * val config = Configuration.load()
  * }}}
  */
 object Configuration {
@@ -21,15 +21,17 @@ object Configuration {
    *
    * For example:
    * {{{
-   * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
+   * val config = Configuration.load()
    * }}}
    *
    * @param the file configuration file to read
    * @return a `Configuration` instance
    */
-  def load() = {
+  def load(file:Option[File] = None) = {
     try {
-      Configuration(Play.maybeApplication.filter(_.mode == Mode.Dev).map(_ => ConfigFactory.load("application")).getOrElse(ConfigFactory.load()))
+      Configuration(file.map{file => ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))}.getOrElse{
+        Play.maybeApplication.filter(_.mode == Mode.Dev).map(_ => ConfigFactory.load("application")).getOrElse(ConfigFactory.load())
+      } )
     } catch {
       case e:ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
@@ -55,11 +57,6 @@ object Configuration {
 
 /**
  * A full configuration set.
- *
- * The best way to obtain this configuration is to read it from a file using:
- * {{{
- * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
- * }}}
  *
  * @param data the configuration data
  * @param root the root key of this configuration if it represents a sub-configuration

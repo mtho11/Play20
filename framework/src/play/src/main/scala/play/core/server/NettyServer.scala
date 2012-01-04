@@ -30,7 +30,7 @@ trait ServerWithStop {
 }
 
 class NettyServer(appProvider: ApplicationProvider, port: Int, address: String = "0.0.0.0", mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
-
+  
   def applicationProvider = appProvider
 
   val bootstrap = new ServerBootstrap(
