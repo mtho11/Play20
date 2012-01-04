@@ -31,7 +31,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
 
   Thread.currentThread.setContextClassLoader(classloader)
 
-  private lazy val initialConfiguration = Configuration.load(Some(Play.getFile("conf/application.conf")(this)))
+  private lazy val initialConfiguration = Configuration.load()
 
   // -- Global stuff
   private lazy val globalClass = initialConfiguration.getString("global").getOrElse("Global")
@@ -68,8 +68,8 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       e.getMessage,
       Some(e))
   }
-  
-  private lazy val fullConfiguration = initialConfiguration ++ global.configuration 
+
+  private lazy val fullConfiguration = initialConfiguration ++ global.configuration
 
   /**
    * The configuration used by this application.
@@ -132,7 +132,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    */
 
   val plugins: Seq[Plugin] = {
-    
+
     pluginClasses.map { className =>
       try {
         val plugin = classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
@@ -159,7 +159,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
     }.flatten
 
   }
-  
+
   /**
    * Retrieves a plugin of type `T`.
    *

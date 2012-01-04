@@ -30,7 +30,7 @@ trait ServerWithStop {
 }
 
 class NettyServer(appProvider: ApplicationProvider, port: Int, address: String = "0.0.0.0", mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
-  
+
   def applicationProvider = appProvider
 
   val bootstrap = new ServerBootstrap(
@@ -68,7 +68,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
     } catch {
       case e => Logger("play").error("Error while stopping the application", e)
     }
-    
+
     mode match {
       case Mode.Test =>
       case _ => Logger("play").warn("Stopping server...")

@@ -24,9 +24,11 @@ object Application extends Controller {
 
   def conf = Action {
     val config = play.api.Play.configuration
+    val overrideConfig =  play.api.libs.akka.Akka.system.settings.config.getString("invoker.max.try")
+
     val s = config.getString("complex-app.something").getOrElse("boooooo")
     val c = config.getString("nokey").getOrElse("None")
-    Ok(s + " no key: " + c)
+    Ok(s + " no key: " + c +" - override akka:"+ overrideConfig)
   }
   
   def post = Action {

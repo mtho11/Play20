@@ -98,7 +98,7 @@ trait Server {
 
   import play.api.libs.concurrent._
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
-    (invoker ? ((requestHeaders, bodyFunction), system.settings.ActorTimeout) ).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
+    (invoker ? ((requestHeaders, bodyFunction), system.settings.ActorTimeout)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
   }
 
   def applicationProvider: ApplicationProvider

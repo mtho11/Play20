@@ -51,9 +51,9 @@ trait PlaySettings {
 
     sourceDirectory in Compile <<= baseDirectory / "app",
     sourceDirectory in Test <<= baseDirectory / "test",
-    
+
     confDirectory <<= baseDirectory / "conf",
-    
+
     resourceDirectory in Compile <<= baseDirectory / "conf",
 
     scalaSource in Compile <<= baseDirectory / "app",

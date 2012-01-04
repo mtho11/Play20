@@ -6,13 +6,16 @@ import akka.actor.ActorSystem
 import play.api.libs.concurrent._
 import java.util.concurrent.TimeUnit
 import com.typesafe.config.ConfigFactory
+import play.api._
 
 object Akka {
-  lazy val system = ActorSystem("playcore", ConfigFactory.load.getConfig("playcore"))
-
+  lazy val system = {
+    val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
+      ConfigFactory.load()).getOrElse(Configuration.loadDev)
+    ActorSystem("playcore", conf.getConfig("playcore"))
+  }
   implicit def akkaToPlay[A](future: Future[A]) = new AkkaFuture(future)
 }
-
 
 /**
  * Wrapper used to transform an Akka Future to Play Promise
@@ -48,7 +51,7 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
    */
   def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
     try {
-      Redeemed(Await.result(future,akka.util.Duration(timeout, unit)))
+      Redeemed(Await.result(future, akka.util.Duration(timeout, unit)))
     } catch {
       case e => Thrown(e)
     }

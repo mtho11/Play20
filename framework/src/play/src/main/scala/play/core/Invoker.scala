@@ -15,9 +15,9 @@ import akka.dispatch.Dispatchers._
 import play.api.libs.akka.Akka._
 import akka.dispatch.Future
 import akka.dispatch.Await
-import akka.util.duration._  
+import akka.util.duration._
 import akka.actor.OneForOneStrategy
-import akka.routing.{DefaultActorPool,FixedCapacityStrategy,SmallestMailboxSelector}
+import akka.routing.{ DefaultActorPool, FixedCapacityStrategy, SmallestMailboxSelector }
 import com.typesafe.config.Config
 
 case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
@@ -109,28 +109,28 @@ class PromiseInvoker extends Actor {
   }
 }
 object PromiseInvoker {
-  
+
   private def getInt(c: Config, key: String) = Option(c.getInt(key))
 
   private lazy val c = system.settings.config
 
-  private lazy val invokerLimit = getInt(c,"invoker.limit").getOrElse(5)
-  private lazy val withinTime = getInt(c,"invoker.withinTime").getOrElse(1000)
-  private lazy val retries = getInt(c,"invoker.max.try").getOrElse(1)
-  private lazy val count = getInt(c,"invoker.selection.count").getOrElse(1)
+  private lazy val invokerLimit = getInt(c, "invoker.limit").getOrElse(5)
+  private lazy val withinTime = getInt(c, "invoker.withinTime").getOrElse(1000)
+  private lazy val retries = getInt(c, "invoker.max.try").getOrElse(1)
+  private lazy val count = getInt(c, "invoker.selection.count").getOrElse(1)
 
   private val faultHandler = OneForOneStrategy(List(classOf[Exception]), retries, withinTime)
 
   private lazy val pool = system.actorOf(
-        Props(new Actor with DefaultActorPool with FixedCapacityStrategy with SmallestMailboxSelector {
-          def instance(defaults: Props) = system.actorOf(defaults.withCreator(new PromiseInvoker).withDispatcher("invoker.promise-dispatcher"))
-          def limit = invokerLimit
-          def selectionCount =  count
-          def partialFill = true
-          def receive = _route
-        }).withFaultHandler(faultHandler))
-  
-  val invoker = pool 
+    Props(new Actor with DefaultActorPool with FixedCapacityStrategy with SmallestMailboxSelector {
+      def instance(defaults: Props) = system.actorOf(defaults.withCreator(new PromiseInvoker).withDispatcher("invoker.promise-dispatcher"))
+      def limit = invokerLimit
+      def selectionCount = count
+      def partialFill = true
+      def receive = _route
+    }).withFaultHandler(faultHandler))
+
+  val invoker = pool
 }
 
 object Agent {
@@ -139,11 +139,10 @@ object Agent {
 
   def apply[A](a: A) = {
     new {
-      def send(action: (A => A)) { 
-         Future{action(a)} 
+      def send(action: (A => A)) {
+        Future { action(a) }
       }
     }
   }
 }
-
 
