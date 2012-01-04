@@ -1,16 +1,19 @@
 package play.api.libs.akka
 
-import akka.dispatch.{ Future }
+import akka.dispatch.{ Future, Await }
+import akka.actor.ActorSystem
 
 import play.api.libs.concurrent._
 import java.util.concurrent.TimeUnit
+import com.typesafe.config.ConfigFactory
 
-/**
- * Defines convenient helpers to work with Akka from Play.
- */
-object `package` {
+object Akka {
+  private lazy val actorSystemName: String = play.api.Play.maybeApplication.map(_.configuration.getString("akka.default.system.name")).flatMap(x=>x).getOrElse("playcore")
+  lazy val system = ActorSystem(actorSystemName, ConfigFactory.load.getConfig(actorSystemName))
+
   implicit def akkaToPlay[A](future: Future[A]) = new AkkaFuture(future)
 }
+
 
 /**
  * Wrapper used to transform an Akka Future to Play Promise
@@ -28,7 +31,7 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
    * call back hook
    */
   def onRedeem(k: A => Unit) {
-    future.onComplete { _.value.get.fold(Thrown(_), k) }
+    future.onComplete { _.fold(Thrown(_), k) }
   }
 
   /*
@@ -36,9 +39,8 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
    */
   def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
     val p = Promise[B]()
-    future.onResult { case a => p.redeem(k(this)) }
-    future.onException { case e => p.redeem(k(this)) }
-    future.onTimeout { _ => p.redeem(k(this)) }
+    future.onSuccess { case a => p.redeem(k(this)) }
+    future.onFailure { case e => p.redeem(k(this)) }
     p
   }
 
@@ -47,7 +49,7 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
    */
   def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
     try {
-      future.await(akka.util.Duration(timeout, unit)).value.get.fold(Thrown(_), Redeemed(_))
+      Redeemed(Await.result(future,akka.util.Duration(timeout, unit)))
     } catch {
       case e => Thrown(e)
     }

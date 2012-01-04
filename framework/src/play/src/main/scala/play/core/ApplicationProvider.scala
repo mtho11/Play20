@@ -7,6 +7,10 @@ import java.io._
 import java.net._
 
 import akka.dispatch.Future
+import play.api.libs.akka.Akka._
+import akka.dispatch.Await
+import play.api.libs.akka.Akka._
+import akka.util.duration._ 
 
 trait SourceMapper {
 
@@ -71,6 +75,8 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
   def get = {
 
+    implicit def dispatcher = system.dispatcher
+
     synchronized {
 
       // Let's load the application on another thread
@@ -78,7 +84,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
       //
       // Because we are on DEV mode here, it doesn't really matter
       // but it's more coherent with the way it works in PROD mode.
-      akka.dispatch.Future({
+      
+
+      Await.result(Future{
 
         Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
 
@@ -119,7 +127,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
           maybeApplication.getOrElse(lastState)
         }
 
-      }, 60000).get
+      }, 20.seconds)
 
     }
   }
@@ -174,6 +182,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
       }
       case runTestSuit() => {
+        implicit def dispatcher = system.dispatcher
         Future {
           sbtLink.runTask("test-result-reporter-reset")
           sbtLink.runTests(Nil, _ => ())

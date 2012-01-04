@@ -50,7 +50,6 @@ private[server] trait WebSocketHandler {
               next.fold(
                 (a, e) => {
                   ctx.getChannel().disconnect();
-                  iterateeAgent.close();
                   promise.redeem(next);
                   println("cleaning for channel " + ctx.getChannel());
                   Promise.pure(next)
