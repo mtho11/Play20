@@ -9,14 +9,12 @@ import play.templates._
  * @param text the HTML text
  */
 case class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
 
   /** Appends this HTML fragment to another. */
   def +(other: Html) = {
-    buffer.append(other.buffer)
-    this
+    Html(text + other)
   }
-  override def toString = buffer.toString
+  override def toString = text.toString
 
   /** Content type of HTML (`text/html`). */
   def contentType = "text/html"
@@ -52,14 +50,12 @@ object HtmlFormat extends Format[Html] {
  * @param text The plain text.
  */
 case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
 
   /** Appends this text fragment to another. */
   def +(other: Txt) = {
-    buffer.append(other.buffer)
-    this
+    Txt(text + other)
   }
-  override def toString = buffer.toString
+  override def toString = text.toString
 
   /** Content type of text (`text/plain`). */
   def contentType = "text/plain"
@@ -93,14 +89,12 @@ object TxtFormat extends Format[Txt] {
  * @param text the plain xml text
  */
 case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
 
   /** Append this XML fragment to another. */
   def +(other: Xml) = {
-    buffer.append(other.buffer)
-    this
+    Xml(text + other)
   }
-  override def toString = buffer.toString
+  override def toString = text.toString
 
   /** Content type of XML (`text/xml`). */
   def contentType = "text/xml"

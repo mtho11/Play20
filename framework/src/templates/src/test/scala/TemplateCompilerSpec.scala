@@ -34,6 +34,8 @@ object TemplateCompilerSpec extends Specification {
 
       helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must be_==(
         "<h1>Hello World!</h1>")
+         
+         helper.compile[((collection.immutable.Set[String]) => Html)]("set.scala.html", "html.set")(Set("first","second","third")).toString.trim.replace("\n","").replaceAll("\\s+", "") must be_==("firstsecondthird") 
 
     }
     "fail compilation for error.scala.html" in {
@@ -51,12 +53,12 @@ object TemplateCompilerSpec extends Specification {
 object Helper {
 
   case class Html(text: String) extends Appendable[Html] {
-    val buffer = new StringBuilder(text)
+
     def +(other: Html) = {
-      buffer.append(other.buffer)
-      this
+      Html(text+other)
     }
-    override def toString = buffer.toString
+     
+    override def toString = text.toString
   }
 
   object HtmlFormat extends Format[Html] {
